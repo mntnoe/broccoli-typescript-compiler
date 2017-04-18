@@ -1,10 +1,9 @@
 import * as fs from "fs";
 import { FSTree, md5Hex, walkSync, WalkSync } from "./helpers";
-import { createMap } from "./utils";
 
 export default class OutputPatcher {
   private entries: WalkSync.Entry[] = [];
-  private contents = createMap<string>();
+  private contents = new Map<string, string>();
   private lastTree: FSTree | undefined = undefined;
   private isUnchanged: (a: Entry, b: Entry) => boolean;
 
@@ -23,7 +22,7 @@ export default class OutputPatcher {
   // relativePath should be without leading '/' and use forward slashes
   public add(relativePath: string, content: string): void {
     this.entries.push(new Entry(this.outputPath, relativePath, md5Hex(content)));
-    this.contents[relativePath] = content;
+    this.contents.set(relativePath, content);
   }
 
   public patch() {
@@ -35,7 +34,7 @@ export default class OutputPatcher {
       throw e;
     } finally {
       this.entries = [];
-      this.contents = createMap<string>();
+      this.contents = new Map<string, string>();
     }
   }
 
@@ -70,7 +69,7 @@ export default class OutputPatcher {
           break;
         case "create":
         case "change":
-          fs.writeFileSync(entry.fullPath, contents[path]);
+          fs.writeFileSync(entry.fullPath, contents.get(path));
           break;
         default: throw new Error(`unrecognized case ${op}`);
       }
