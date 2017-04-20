@@ -1,7 +1,16 @@
+import * as path from "path";
 import { CompilerOptions } from "typescript";
-import { JSONCompilerOptions } from "./json-compiler-options";
+import {
+  normalizeAbsolutePath,
+  NormalizedAbsolutePath,
+  NormalizedPath,
+  normalizePath
+} from "./file-utils";
+import {
+  JSONCompilerOptions
+} from "./json-compiler-options";
 
-export interface TSConfig {
+export interface JSONConfig {
   /**
    * Compiler options.
    */
@@ -58,5 +67,53 @@ export interface PluginOptions {
    * be resolved as though the input node were mounted at the `root` but only
    * types and declarations. All other input should be in the input node.
    */
-  tsconfig?: string | TSConfig;
+  tsconfig?: string | JSONConfig;
+
+  annotation?: string;
+
+  passthroughUnusedInput?: boolean;
+}
+
+export interface NormalizedOptions {
+  root: NormalizedAbsolutePath;
+
+  configFileName: NormalizedPath | undefined;
+  rawConfig: JSONConfig | undefined;
+
+  compilerOptions: CompilerOptions | undefined;
+
+  throwOnError: boolean;
+  passthroughUnusedInput: boolean;
+}
+
+export function normalizeOptions(options: PluginOptions): NormalizedOptions {
+  let root = options.root;
+  let tsconfig = options.tsconfig;
+
+  let configFileName: NormalizedPath | undefined = undefined;
+  let rawConfig: JSONConfig | undefined = undefined;
+  if (typeof tsconfig === "object") {
+    configFileName = undefined;
+    rawConfig = tsconfig;
+  } else if (tsconfig) {
+    configFileName = normalizePath(tsconfig);
+    rawConfig = undefined;
+  }
+
+  if (!root) {
+    if (configFileName) {
+      root = path.dirname(configFileName);
+    } else {
+      root = ".";
+    }
+  }
+
+  return {
+    configFileName,
+    compilerOptions: options.compilerOptions,
+    passthroughUnusedInput: options.passthroughUnusedInput === true,
+    rawConfig,
+    root: normalizeAbsolutePath(root),
+    throwOnError: options.throwOnError === true
+  };
 }

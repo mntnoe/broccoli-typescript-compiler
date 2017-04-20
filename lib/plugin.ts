@@ -1,12 +1,9 @@
+import * as path from "path";
+import { CompilerOptions } from "typescript";
 import Compiler from "./compiler";
+import { normalizeAbsolutePath } from "./file-utils";
 import { BroccoliPlugin, getCallerFile, heimdall } from "./helpers";
-import { findConfig, readConfig } from "./utils";
-
-export interface TypeScriptOptions {
-  tsconfig?: Object | string | undefined;
-  annotation?: string | undefined;
-}
-
+import { NormalizedOptions, normalizeOptions, PluginOptions } from "./options";
 export { findConfig } from "./utils";
 
 /**
@@ -26,7 +23,7 @@ export { findConfig } from "./utils";
  * it will these as entry points and only compile
  * the files and files they reference from the input.
  */
-export function typescript(inputNode: any, options?: TypeScriptOptions | undefined) {
+export function typescript(inputNode: any, options?: PluginOptions) {
   return new TypeScript(inputNode, options);
 }
 
@@ -34,44 +31,33 @@ export function typescript(inputNode: any, options?: TypeScriptOptions | undefin
  * TypeScript Broccoli plugin class.
  */
 export class TypeScript extends BroccoliPlugin {
-  private config: Object;
-  private configFileName: string | undefined;
   private host: Compiler | undefined;
+  private options: NormalizedOptions;
 
-  constructor(inputNode: any, options?: TypeScriptOptions | undefined) {
+  constructor(inputNode: any, options?: PluginOptions) {
     super([ inputNode ], {
       annotation: options && options.annotation,
       name: "broccoli-typescript-compiler",
       persistentOutput: true
     });
-
-    let configFileName: string | undefined;
-    let config: any;
-    if (!options || !options.tsconfig) {
-      configFileName = findConfig(getCallerFile(2));
-      config = readConfig(configFileName);
-    } else if (typeof options.tsconfig === "string") {
-      configFileName = options.tsconfig;
-      config = readConfig(configFileName);
-    } else {
-      configFileName = undefined;
-      config = options.tsconfig;
-    }
-
-    this.config = config;
-    this.configFileName = configFileName;
+    this.options = normalizeOptions(options || {});
   }
 
   public build() {
     let token = heimdall.start("TypeScript:compile");
     let inputPath = this.inputPaths[0];
+    let options = this.options;
     let host = this.host;
     if (!host) {
-      host = this.host = new Compiler(this.outputPath, inputPath, this.config, this.configFileName);
-    } else {
-      host.updateInput(inputPath);
+      host = this.host = new Compiler(
+        normalizeAbsolutePath(this.outputPath),
+        options.root,
+        options.compilerOptions,
+        options.configFileName,
+        options.rawConfig
+      );
     }
-    host.compile();
+    host.compile(normalizeAbsolutePath(inputPath));
     heimdall.stop(token);
   }
 }

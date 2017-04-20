@@ -34,23 +34,6 @@ export function readConfig(configFile: string): any {
   return result.config;
 }
 
-export function createParseConfigHost(inputPath: string): ParseConfigHost {
-  let rootLength = inputPath.length;
-  let stripRoot = (fileName) => fileName.slice(rootLength);
-  let realPath = (fileName) => inputPath + fileName;
-  let fileExists = (path) => sys.fileExists(realPath(path));
-  let readDirectory = (rootDir, extensions, excludes, includes) => {
-    return sys.readDirectory(realPath(rootDir), extensions, excludes, includes).map(stripRoot);
-  };
-  let readFile = (path) => sys.readFile(realPath(path));
-  return {
-    useCaseSensitiveFileNames,
-    fileExists,
-    readDirectory,
-    readFile,
-  };
-}
-
 export interface Map<T> {
   [key: string]: T | undefined;
 }

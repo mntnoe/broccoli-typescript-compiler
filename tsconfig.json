@@ -4,16 +4,18 @@
     "target": "es2015",
     "moduleResolution": "node",
     "strictNullChecks": true,
-    // "noUnusedLocals": true,
     "noUnusedParameters": true,
     "newLine": "LF",
     "outDir": "dist",
     "sourceMap": true,
     "declaration": true
   },
-  "include": [
-    "./index.ts",
-    "./lib/**/*.ts",
-    "./tests/*-test.ts"
+  "files": [
+    "lib/input.ts",
+    "lib/options.ts",
+    "lib/plugin.ts",
+    "lib/file-io.ts",
+    "lib/config-parser.ts",
+    "tests/config-parser-test.ts"
   ]
 }
