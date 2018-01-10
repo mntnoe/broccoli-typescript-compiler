@@ -34,7 +34,8 @@ export function typescript(inputNode: any, options?: TypeScriptPluginOptions) {
 export class TypeScriptPlugin extends BroccoliPlugin {
   private compiler: Compiler | undefined;
   private diagnosticHandler: DiagnosticsHandler;
-  private options: NormalizedOptions;
+  private options: TypeScriptPluginOptions;
+  private normalizedOptions: NormalizedOptions;
 
   constructor(inputNode: any, options?: TypeScriptPluginOptions) {
     super([ inputNode ], {
@@ -42,19 +43,26 @@ export class TypeScriptPlugin extends BroccoliPlugin {
       name: "broccoli-typescript-compiler",
       persistentOutput: true,
     });
-    const normalizedOptions = normalizeOptions(options || {});
-    this.options = normalizedOptions;
-    this.diagnosticHandler = new DiagnosticsHandler(normalizedOptions);
+    this.options = options || {};
   }
 
   public build() {
     const token = heimdall.start("TypeScript:compile");
+
+    if (!this.normalizedOptions) {
+        this.normalizedOptions = normalizeOptions(this.options, this.inputPaths[0]);
+    }
+
+    if (!this.diagnosticHandler) {
+        this.diagnosticHandler = new DiagnosticsHandler(this.normalizedOptions);
+    }
+
     let compiler = this.compiler;
     if (!compiler) {
       compiler = this.compiler = new Compiler(
         toPath( this.inputPaths[0] ),
         toPath( this.outputPath ),
-        this.options,
+        this.normalizedOptions,
         this.diagnosticHandler,
       );
     }
