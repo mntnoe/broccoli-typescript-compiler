@@ -31,7 +31,7 @@ export interface TypeScriptPluginOptions {
    *
    * This affects how file paths are made relative for errors reporting.
    *
-   * Defaults to `process.cwd()`.
+   * Defaults to `inputPaths[0]`.
    */
   workingPath?: string;
 

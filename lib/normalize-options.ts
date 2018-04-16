@@ -5,8 +5,9 @@ import {
 } from "./fs/path-utils";
 import { CompilerOptionsConfig, NormalizedOptions, TypeScriptPluginOptions } from "./interfaces";
 
-export default function normalizeOptions(options: TypeScriptPluginOptions): NormalizedOptions {
-  const workingPath = toAbsolutePath(options.workingPath === undefined ? process.cwd() : options.workingPath);
+export default function normalizeOptions(options: TypeScriptPluginOptions, inputPath: string): NormalizedOptions {
+  const workingPath = toAbsolutePath(options.workingPath === undefined ? inputPath : options.workingPath);
+
   const rootPath = options.rootPath === undefined ? workingPath : toAbsolutePath(options.rootPath, workingPath);
   const projectPath = options.projectPath === undefined ? rootPath : toAbsolutePath(options.projectPath, workingPath);
   const buildPath = options.buildPath === undefined ? undefined : toAbsolutePath(options.buildPath, workingPath);
